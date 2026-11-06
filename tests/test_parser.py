@@ -494,6 +494,17 @@ class TestParser(unittest.TestCase):
 
         assert "'ADD JAR s3://a'" in cm.output[0]
 
+    def test_savepoint_keywords_as_identifiers(self):
+        for sql in ("release", "savepoint = 1", "release.a + 1"):
+            with self.subTest(sql=sql):
+                self.assertNotIsInstance(parse_one(sql), exp.Command)
+
+        self.assertEqual(
+            exp.select("*").from_("t").where("release > 1").sql(),
+            "SELECT * FROM t WHERE release > 1",
+        )
+        self.assertEqual(exp.update("t", {"savepoint": 1}).sql(), "UPDATE t SET savepoint = 1")
+
     def test_copy_command_fallback(self):
         for dialect in (None, "postgres"):
             for error_level in ErrorLevel:
